@@ -181,7 +181,7 @@ void LCD5110_Write_Dec(uint16_t value, uint8_t size) {
 
 	char digit[5];
 	uint8_t i;
-	getDecimalFromShort(digit, value);
+	getDecimalFromShort(digit, value, 5);
 
 	for (i = 5 - size; i < 5; i++) {
 		LCD5110_Write_Char(digit[i]);
