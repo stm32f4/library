@@ -9,7 +9,7 @@
  **------------------------------------------------------------------------------------------------------
  ** Created by:			AVRman
  ** Created date:		2011-2-23
- ** Version:				1.0
+ ** Version:			1.0
  ** Descriptions:		The original version
  **
  **------------------------------------------------------------------------------------------------------
@@ -43,16 +43,16 @@
  *                  (from the glass datasheet).
  *********************************************************************/
 #define DISP_HOR_PULSE_WIDTH		20    /* 20 */
-#define DISP_HOR_BACK_PORCH			51	  /* 48	*/
-#define DISP_HOR_FRONT_PORCH		20	  /* 20 */
+#define DISP_HOR_BACK_PORCH			48	  /* 48	*/
+#define DISP_HOR_FRONT_PORCH		0	  /* 20 */
 
 /*********************************************************************
  * Overview: Vertical synchronization timing in lines
  *                  (from the glass datasheet).
  *********************************************************************/
 #define DISP_VER_PULSE_WIDTH		2	  /* 2 */
-#define DISP_VER_BACK_PORCH			12	  /* 16 */
-#define DISP_VER_FRONT_PORCH		4	  /* 4 */
+#define DISP_VER_BACK_PORCH			16	  /* 16 */
+//#define DISP_VER_FRONT_PORCH		4	  /* 4 */
 
 /*********************************************************************
  * Definition for SPI interface for HIMAX 8238-A relevant to hardware
@@ -78,11 +78,10 @@
 #define Green          0x07E0
 #define Cyan           0x7FFF
 #define Yellow         0xFFE0
-
-#define RGB565CONVERT(red, green, blue) (int) (((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3))
+#define RGB565CONVERT(red, green, blue)		(uint16_t) ((((red) >> 3) << 11) | (((green) >> 2) << 5) | ((blue) >> 3))
 
 /* Private function prototypes -----------------------------------------------*/
-void LCD_Initialization(void);
+void LCD_Init(void);
 void LCD_Clear(uint16_t Color);
 void LCD_SetBacklight(uint8_t intensity);
 uint16_t LCD_GetPoint(uint16_t Xpos, uint16_t Ypos);
@@ -93,7 +92,7 @@ void LCD_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
 		uint16_t color);
 void PutChinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color,
 		uint16_t bkColor);
-void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color,
+void GUI_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color,
 		uint16_t bkColor);
 void GUI_Chinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color,
 		uint16_t bkColor);
@@ -102,7 +101,7 @@ void LCD_DrawPicture(uint16_t StartX, uint16_t StartY, uint16_t EndX,
 uint8_t LCD_GetScanLine();
 void LCD_FillArea(uint16_t start_x, uint16_t start_y, uint16_t end_x,
 		uint16_t end_y, uint16_t color);
-#endif 
+#endif
 
 /*********************************************************************************************************
  END FILE

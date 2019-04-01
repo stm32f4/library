@@ -74,7 +74,6 @@ static void LCD_CtrlLinesConfig(void) {
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-
 	/* Set PD.00(D2), PD.01(D3), PD.04(NOE), PD.05(NWE), PD.08(D13), PD.09(D14),
 	 PD.10(D15), PD.14(D0), PD.15(D1) as alternate function push pull */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_4
@@ -317,7 +316,7 @@ static void SSD1963_SPI_WriteReg(uint8_t reg, uint16_t cmd) {
  * Attention		 : None
  *******************************************************************************/
 static void delay_ms(uint16_t ms) {
-	Delay(ms);
+	Delay_ms(ms);
 //	uint16_t i, j;
 //	for (i = 0; i < ms; i++) {
 //		for (j = 0; j < 1141; j++)
@@ -333,7 +332,7 @@ static void delay_ms(uint16_t ms) {
  * Return         : None
  * Attention		 : None
  *******************************************************************************/
-void LCD_Initialization(void) {
+void LCD_Init(void) {
 	LCD_Configuration();
 	/* Set MN(multipliers) of PLL, VCO = crystal freq * (N+1) */
 	/* PLL freq = VCO/M with 250MHz < VCO < 800MHz */
@@ -346,14 +345,14 @@ void LCD_Initialization(void) {
 
 	LCD_WriteCommand(0xE0); /* Start PLL command */
 	LCD_WriteData(0x01); /* enable PLL */
-	delay_ms(10); /* wait stablize */
+	delay_ms(10); /* wait stabilization */
 
 	LCD_WriteCommand(0xE0); /* Start PLL command again */
 	LCD_WriteData(0x03); /* now, use PLL output as system clock */
 
 	LCD_FSMCConfig(1); /* Set FSMC full speed now */
 
-	/* once PLL locked (at 120MHz), the data hold time set shortest */
+	/* once PLL locked (at 120MHz), the data hold time is shortened */
 	LCD_WriteCommand(0x01); /* Soft reset */
 	delay_ms(10);
 
@@ -380,29 +379,56 @@ void LCD_Initialization(void) {
 	/* Set horizontal period */
 	LCD_WriteCommand(0xB4);
 
-#define HT ( DISP_HOR_RESOLUTION + DISP_HOR_PULSE_WIDTH + DISP_HOR_BACK_PORCH + DISP_HOR_FRONT_PORCH )
-	LCD_WriteData((HT - 1) >> 8);
-	LCD_WriteData(HT - 1);
+//#define HT ( DISP_HOR_RESOLUTION + DISP_HOR_PULSE_WIDTH + DISP_HOR_BACK_PORCH + DISP_HOR_FRONT_PORCH )
+//	LCD_WriteData((HT - 1) >> 8);
+//	LCD_WriteData(HT - 1);
 
-#define HPS ( DISP_HOR_PULSE_WIDTH + DISP_HOR_BACK_PORCH )
-	LCD_WriteData((HPS - 1) >> 8);
-	LCD_WriteData(HPS - 1);
-	LCD_WriteData(DISP_HOR_PULSE_WIDTH - 1);
+//#define HPS ( DISP_HOR_PULSE_WIDTH + DISP_HOR_BACK_PORCH )
+//	LCD_WriteData((HPS - 1) >> 8);
+//	LCD_WriteData(HPS - 1);
+//	LCD_WriteData(DISP_HOR_PULSE_WIDTH - 1);
+//	LCD_WriteData(0x00);
+//	LCD_WriteData(0x00);
+//	LCD_WriteData(0x00);
+
+	LCD_WriteData(0x01);
+	LCD_WriteData(0xB8);
+
+	LCD_WriteData(0x00);
+	LCD_WriteData(0x44);
+
+	LCD_WriteData(0x0F);
+
 	LCD_WriteData(0x00);
 	LCD_WriteData(0x00);
 	LCD_WriteData(0x00);
+
 
 	/* Set vertical period */
 	LCD_WriteCommand(0xB6);
 
-#define VT ( DISP_VER_PULSE_WIDTH + DISP_VER_BACK_PORCH + DISP_VER_FRONT_PORCH + DISP_VER_RESOLUTION )
+//#define VT ( DISP_VER_PULSE_WIDTH + DISP_VER_BACK_PORCH + DISP_VER_FRONT_PORCH + DISP_VER_RESOLUTION )
+//	LCD_WriteData((VT - 1) >> 8);
+//	LCD_WriteData(VT - 1);
+
+//#define VSP ( DISP_VER_PULSE_WIDTH + DISP_VER_BACK_PORCH )
+//	LCD_WriteData((VSP - 1) >> 8);
+//	LCD_WriteData(VSP - 1);
+//	LCD_WriteData(DISP_VER_PULSE_WIDTH - 1);
+//	LCD_WriteData(0x00);
+//	LCD_WriteData(0x00);
+
+#define VT ( DISP_VER_PULSE_WIDTH + DISP_VER_BACK_PORCH + DISP_VER_RESOLUTION )
+
 	LCD_WriteData((VT - 1) >> 8);
 	LCD_WriteData(VT - 1);
 
 #define VSP ( DISP_VER_PULSE_WIDTH + DISP_VER_BACK_PORCH )
-	LCD_WriteData((VSP - 1) >> 8);
-	LCD_WriteData(VSP - 1);
+	LCD_WriteData(VSP >> 8);
+	LCD_WriteData(VSP);
+
 	LCD_WriteData(DISP_VER_PULSE_WIDTH - 1);
+
 	LCD_WriteData(0x00);
 	LCD_WriteData(0x00);
 
@@ -454,9 +480,11 @@ void LCD_Initialization(void) {
 	SSD1963_SPI_WriteReg(0x1e, 0x00);
 	SSD1963_SPI_WriteReg(0x20, 0x00);
 
-	LCD_WriteCommand(0x29); /* Turn on display; show the image on display */
+	LCD_Clear(Black);	// Clear screen
 
-	LCD_SetBacklight(0xff);
+	LCD_WriteCommand(0x29); // Turn on display; show the image on display
+
+	LCD_SetBacklight(0x80);
 }
 
 /******************************************************************************
@@ -673,7 +701,7 @@ void PutChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCI, uint16_t charColor,
 	for (i = 0; i < 16; i++) {
 		tmp_char = buffer[i];
 		for (j = 0; j < 8; j++) {
-			if ((tmp_char >> 7 - j) & 0x01 == 0x01) {
+			if ((tmp_char >> 7 - j) & (0x01 == 0x01)) {
 				LCD_SetPoint(Xpos + j, Ypos + i, charColor); /* �ַ���ɫ */
 			} else {
 				LCD_SetPoint(Xpos + j, Ypos + i, bkColor); /* ������ɫ */
@@ -694,7 +722,7 @@ void PutChar(uint16_t Xpos, uint16_t Ypos, uint8_t ASCI, uint16_t charColor,
  * Return         : None
  * Attention		 : None
  *******************************************************************************/
-void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color,
+void GUI_Text(uint16_t Xpos, uint16_t Ypos, char *str, uint16_t Color,
 		uint16_t bkColor) {
 	uint8_t TempChar;
 	do {
@@ -737,7 +765,7 @@ void PutChinese(uint16_t Xpos, uint16_t Ypos, uint8_t *str, uint16_t Color,
 		tmp_char = (tmp_char << 8);
 		tmp_char |= buffer[2 * i + 1];
 		for (j = 0; j < 16; j++) {
-			if ((tmp_char >> 15 - j) & 0x01 == 0x01) {
+			if ((tmp_char >> 15 - j) & (0x01 == 0x01)) {
 				LCD_SetPoint(Xpos + j, Ypos + i, Color); /* �ַ���ɫ */
 			} else {
 				LCD_SetPoint(Xpos + j, Ypos + i, bkColor); /* ������ɫ */

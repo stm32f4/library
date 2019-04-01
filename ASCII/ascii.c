@@ -6,7 +6,7 @@ char digitToAscii[16] = { 0x30, 0X31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0X38,
 void getDecimalFromShort(char* values, unsigned short value, uint8_t size) {
 	char digit[5];
 	uint16_t factors[5] = { 10000, 1000, 100, 10, 1 };
-	int i;
+	uint8_t i;
 	uint8_t zero = 1;
 
 	for (i = 0; i < 5; i++) {
@@ -24,8 +24,8 @@ void getDecimalFromShort(char* values, unsigned short value, uint8_t size) {
 }
 
 void getHexFromLong(char* values, unsigned long value, uint8_t nbDigits) {
-	char digits[8];
-	int i;
+	unsigned char digits[8];
+	uint8_t i;
 	uint8_t zero = 1;
 
 	for (i = 0; i < 8; i++) {
